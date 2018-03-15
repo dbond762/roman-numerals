@@ -56,6 +56,8 @@ func TestConvert(t *testing.T) {
 		{8, "VIII"},
 		{9, "IX"},
 		{10, "X"},
+		{20, "XX"},
+		{30, "XXX"},
 		{40, "XL"},
 		{50, "L"},
 		{90, "XC"},
@@ -65,6 +67,13 @@ func TestConvert(t *testing.T) {
 		{900, "CM"},
 		{1000, "M"},
 		{3999, "MMMCMXCIX"},
+		{76, "LXXVI"},
+		{94, "XCIV"},
+		{99, "XCIX"},
+		{283, "CCLXXXIII"},
+		{499, "CDXCIX"},
+		{999, "CMXCIX"},
+		{1950, "MCML"},
 	}
 	for _, c := range cases {
 		URL, err := buildURL(server.URL, c.roman)
