@@ -1,8 +1,18 @@
 package main
 
-import "fmt"
+import (
+	"net/http"
+	"log"
+)
+
+func convert(w http.ResponseWriter, r *http.Request) {
+	
+}
 
 
 func main() {
-	fmt.Print("Hello, World")
+	http.HandleFunc("/convert", convert)
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
 }
