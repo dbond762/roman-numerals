@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/cors"
+	"github.com/go-chi/chi/middleware"
 )
 
 func Convert(w http.ResponseWriter, r *http.Request) {
@@ -69,13 +72,26 @@ func Convert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonData)
 }
 
 func main() {
-	http.HandleFunc("/convert", Convert)
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	r := chi.NewRouter()
+
+	CORS := cors.New(cors.Options{
+		AllowedOrigins:		[]string{"*"},
+		AllowedMethods:		[]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:		[]string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:		[]string{"Link"},
+		AllowCredentials:	true,
+		MaxAge:				300,
+	})
+	r.Use(CORS.Handler)
+	r.Use(middleware.SetHeader("Content-Type", "application/json"))
+
+	r.Get("/convert", Convert)
+
+	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
