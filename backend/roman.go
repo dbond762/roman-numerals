@@ -8,10 +8,6 @@ import (
 	"strconv"
 )
 
-type Response struct {
-	Res string
-}
-
 func Convert(w http.ResponseWriter, r *http.Request) {
 	numbers, ok := r.URL.Query()["number"]
 	if !ok || len(numbers) != 1 {
@@ -29,35 +25,52 @@ func Convert(w http.ResponseWriter, r *http.Request) {
 
 	romanRegexp := regexp.MustCompile(`^(M{0,3})(D?C{0,3}|C[DM])(L?X{0,3}|X[LC])(V?I{0,3}|I[VX])$`)
 
-	var result []byte
+	var result interface{}
 	if arab, err := strconv.Atoi(number); err == nil {
+		// Convert arab to roman.
 		if arab <= 0 || arab >= 4000 {
 			http.Error(w, "Bad number", 500)
 			return
 		}
+
+		roman := make([]byte, 0, 15)
 		digit := 1000
 		for i := 3; i >= 0; i-- {
 			d := arab / digit
-			result = append(result, []byte(table[i][d])...)
+			roman = append(roman, []byte(table[i][d])...)
 			arab %= digit
 			digit /= 10
 		}
+
+		result = map[string]string {"Res": string(roman)}
 	} else if romanRegexp.MatchString(number) {
-		result = []byte("1")
+		// Convert roman to arab.
+		digits := romanRegexp.FindAllStringSubmatch(number, 1)
+
+		arab := 0
+		for i, digit := 1, 1000; i < len(digits[0]); i, digit = i+1, digit/10 {
+			for k, v := range table[4-i] {
+				if digits[0][i] == v {
+					arab += k * digit
+					break
+				}
+			}
+		}
+
+		result = map[string]int {"Res": arab}
 	} else {
 		http.Error(w, "Bad number", 500)
 		return
 	}
 
-	res := Response{string(result)}
-	js, err := json.Marshal(res)
+	jsonData, err := json.Marshal(result)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	w.Write(jsonData)
 }
 
 func main() {

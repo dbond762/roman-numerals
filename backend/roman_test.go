@@ -6,11 +6,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 )
 
-func getResponse(URL string) (*Response, error) {
+func getResponse(URL string) ([]byte, error) {
 	got, err := http.Get(URL)
 	if err != nil {
 		return nil, err
@@ -21,9 +20,7 @@ func getResponse(URL string) (*Response, error) {
 		return nil, err
 	}
 
-	var res Response
-	json.Unmarshal(body, &res)
-	return &res, nil
+	return body, nil
 }
 
 func TestConvert(t *testing.T) {
@@ -70,12 +67,16 @@ func TestConvert(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		i, err := strconv.Atoi(got.Res)
-		if err != nil {
+		var resArab map[string]int
+		if err := json.Unmarshal(got, &resArab); err != nil {
 			t.Fatal(err)
 		}
-		if i != c.arab {
-			t.Errorf("Query: %s,\tgot %d,\twant %d", URL, i, c.arab)
+		arab, ok := resArab["Res"]
+		if !ok {
+			t.Fatal("Don`t have number in response")
+		}
+		if arab != c.arab {
+			t.Errorf("Query: %s,\tgot %d,\twant %d", URL, arab, c.arab)
 		}
 
 		URL = fmt.Sprintf("%s?number=%d", server.URL, c.arab)
@@ -83,8 +84,16 @@ func TestConvert(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if got.Res != c.roman {
-			t.Errorf("Query: %s,\tgot %s,\twant %s", URL, got.Res, c.roman)
+		var resRoman map[string]string
+		if err := json.Unmarshal(got, &resRoman); err != nil {
+			t.Fatal(err)
+		}
+		roman, ok := resRoman["Res"]
+		if !ok {
+			t.Fatal("Don`t have number in response")
+		}
+		if roman != c.roman {
+			t.Errorf("Query: %s,\tgot %s,\twant %s", URL, roman, c.roman)
 		}
 	}
 }
