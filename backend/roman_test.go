@@ -2,24 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strconv"
 	"testing"
 )
-
-func buildURL(URL, value string) (string, error) {
-	u, err := url.Parse(URL)
-	if err != nil {
-		return "", err
-	}
-	q := u.Query()
-	q.Set("number", value)
-	u.RawQuery = q.Encode()
-	return u.String(), nil
-}
 
 func getResponse(URL string) (*Response, error) {
 	got, err := http.Get(URL)
@@ -76,10 +65,7 @@ func TestConvert(t *testing.T) {
 		{1950, "MCML"},
 	}
 	for _, c := range cases {
-		URL, err := buildURL(server.URL, c.roman)
-		if err != nil {
-			t.Fatal(err)
-		}
+		URL := fmt.Sprintf("%s?number=%s", server.URL, c.roman)
 		got, err := getResponse(URL)
 		if err != nil {
 			t.Fatal(err)
@@ -89,19 +75,16 @@ func TestConvert(t *testing.T) {
 			t.Fatal(err)
 		}
 		if i != c.arab {
-			t.Errorf("Query: %s,\tgot %d,\twant %d", c.roman, i, c.arab)
+			t.Errorf("Query: %s,\tgot %d,\twant %d", URL, i, c.arab)
 		}
 
-		URL, err = buildURL(server.URL, string(c.arab))
-		if err != nil {
-			t.Fatal(err)
-		}
+		URL = fmt.Sprintf("%s?number=%d", server.URL, c.arab)
 		got, err = getResponse(URL)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if got.Res != c.roman {
-			t.Errorf("Query: %d,\tgot %s,\twant %s", c.arab, got.Res, c.roman)
+			t.Errorf("Query: %s,\tgot %s,\twant %s", URL, got.Res, c.roman)
 		}
 	}
 }
