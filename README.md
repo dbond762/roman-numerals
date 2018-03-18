@@ -22,6 +22,7 @@ npm run dev
 cd roman-numerals/backend
 go get github.com/go-chi/chi
 go get github.com/go-chi/cors
+go test
 go build
 ./roman
 ```
