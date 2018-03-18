@@ -16,6 +16,9 @@ matrix:
       node_js:
         - 9.8.0
       
+      before_install:
+        - cd frontend
+      
       install:
         - npm install
       
