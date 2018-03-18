@@ -8,4 +8,4 @@ before_install:
 
 script:
   - go test -v ./...
-  - go build backend/roman.go && ./roman
+  - go build backend/roman.go
