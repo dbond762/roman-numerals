@@ -1,0 +1,19 @@
+@import "variables.styl"
+
+body
+  font $font
+  color $text-color
+
+input[type=text]
+  font $font
+  color $text-color
+  background #f9f9f9
+  height 40px
+  padding 12px 20px
+  margin 20px
+  border 1px solid $gray-color
+  border-radius 5px
+  outline none
+
+  &:focus
+    box-shadow inset 1px 1px 5px $main-color
