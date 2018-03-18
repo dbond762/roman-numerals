@@ -1,11 +1,23 @@
-language: go
-go:
-  - 1.10.x
+matrix:
+  include:
+    - language: go
+      go:
+        - 1.10.x
 
-before_install:
-- go get -v github.com/go-chi/chi
-- go get -v github.com/go-chi/cors
+      before_install:
+      - go get -v github.com/go-chi/chi
+      - go get -v github.com/go-chi/cors
 
-script:
-  - go test -v ./...
-  - go build backend/roman.go
+      script:
+        - go test -v ./...
+        - go build backend/roman.go
+        
+    - language: nodejs    
+      node_js:
+        - 9.8.0
+      
+      install:
+        - npm install
+      
+      script:
+        - npm run build
