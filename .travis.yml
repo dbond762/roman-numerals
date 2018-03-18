@@ -3,8 +3,8 @@ go:
   - 1.10.x
 
 before_install:
-- go get -v github.com/golang/go-chi/chi
-- go get -v github.com/golang/go-chi/cors
+- go get -v github.com/go-chi/chi
+- go get -v github.com/go-chi/cors
 
 script:
   - go test -v ./...
