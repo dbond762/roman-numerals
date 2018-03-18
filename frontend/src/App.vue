@@ -45,11 +45,8 @@ export default {
         return false
       }
 
-      this.axios.get('http://localhost:8080/convert', {
-        params: {
-          number: this.input.toUpperCase()
-        }
-      }).then(response => {
+      let number = this.input.toUpperCase()
+      this.axios.get(`http://localhost:8080/convert/${number}`).then(response => {
         this.output = response.data.Res
       }).catch(err => {
         console.log(err)
