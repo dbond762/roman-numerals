@@ -1,8 +1,10 @@
 # roman-numerals
-Конвертер римских и арабских чисел
-
 [![Build Status](https://travis-ci.org/dbond762/roman-numerals.png?branch=master)](https://travis-ci.org/dbond762/roman-numerals)
 
+## Описание
+Конвертер римских и арабских чисел
+
+## Как запустить
 Для запуска сервера загрузить и запустить соответствующий бинарник https://github.com/dbond762/roman-numerals/releases
 
 Для запуска фронтенда
@@ -13,7 +15,7 @@ npm install
 npm run dev
 ```
 
-Для того, что бы собрать сервер из исходников. нужно
+Для того, что бы собрать сервер из исходников: ([бинарники уже скомпилированны](https://github.com/dbond762/roman-numerals/releases))
   - установить go 1.10
   - склонировать проект в $GOPATH/src
 ```bash
