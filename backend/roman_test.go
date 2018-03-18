@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/go-chi/chi"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -24,8 +25,10 @@ func getResponse(URL string) ([]byte, error) {
 }
 
 func TestConvert(t *testing.T) {
-	handler := http.HandlerFunc(Convert)
-	server := httptest.NewServer(handler)
+	r := chi.NewRouter()
+	r.Get("/convert/{number}", Convert)
+
+	server := httptest.NewServer(r)
 	defer server.Close()
 
 	cases := []struct {
@@ -62,7 +65,7 @@ func TestConvert(t *testing.T) {
 		{1950, "MCML"},
 	}
 	for _, c := range cases {
-		URL := fmt.Sprintf("%s?number=%s", server.URL, c.roman)
+		URL := fmt.Sprintf("%s/convert/%s", server.URL, c.roman)
 		got, err := getResponse(URL)
 		if err != nil {
 			t.Fatal(err)
@@ -79,7 +82,7 @@ func TestConvert(t *testing.T) {
 			t.Errorf("Query: %s,\tgot %d,\twant %d", URL, arab, c.arab)
 		}
 
-		URL = fmt.Sprintf("%s?number=%d", server.URL, c.arab)
+		URL = fmt.Sprintf("%s/convert/%d", server.URL, c.arab)
 		got, err = getResponse(URL)
 		if err != nil {
 			t.Fatal(err)

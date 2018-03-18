@@ -19,13 +19,11 @@ var table = [][]string{
 	{"", "M", "MM", "MMM"},
 }
 
+type Number string
+
 func Convert(w http.ResponseWriter, r *http.Request) {
-	numbers, ok := r.URL.Query()["number"]
-	if !ok || len(numbers) != 1 || numbers[0] == "" {
-		http.Error(w, "Bad number", 500)
-		return
-	}
-	number := strings.ToUpper(numbers[0])
+	number := chi.URLParam(r, "number")
+	number = strings.ToUpper(number)
 
 	re := regexp.MustCompile(`^(M{0,3})(D?C{0,3}|C[DM])(L?X{0,3}|X[LC])(V?I{0,3}|I[VX])$`)
 
@@ -90,7 +88,7 @@ func main() {
 	r.Use(CORS.Handler)
 	r.Use(middleware.SetHeader("Content-Type", "application/json"))
 
-	r.Get("/convert", Convert)
+	r.Get("/convert/{number}", Convert)
 
 	log.Printf("Server run on http://localhost:8080")
 	if err := http.ListenAndServe(":8080", r); err != nil {
