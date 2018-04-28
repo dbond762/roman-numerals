@@ -2,72 +2,108 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/cors"
+	"errors"
 	"log"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
 )
 
-var table = [][]string{
-	{"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"},
-	{"", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC"},
-	{"", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM"},
-	{"", "M", "MM", "MMM"},
+var (
+	table = [][]string{
+		{"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"},
+		{"", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC"},
+		{"", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM"},
+		{"", "M", "MM", "MMM"},
+	}
+
+	errBadNumber = errors.New("bad number")
+)
+
+// Конвертирует арбские числа в римские.
+// Если число <= 0 или > 3999 - возвращает ошибку "bad number".
+func arab2roman(arab int) (string, error) {
+	const maxNumber = 3999
+	if arab <= 0 || arab > maxNumber {
+		return "", errBadNumber
+	}
+
+	var (
+		roman = ""
+		digit = 1000
+	)
+	for i := 3; i >= 0; i-- {
+		d := arab / digit
+		roman += table[i][d]
+		arab %= digit
+		digit /= 10
+	}
+
+	return roman, nil
 }
 
-type Number string
+// Конвертирует римские числа в арабские.
+// Если введено неправильное число, вернёт ошибку "bad number".
+func roman2arab(roman string) (int, error) {
+	re := regexp.MustCompile(`^(M{0,3})(D?C{0,3}|C[DM])(L?X{0,3}|X[LC])(V?I{0,3}|I[VX])$`)
 
-func Convert(w http.ResponseWriter, r *http.Request) {
+	if !re.MatchString(roman) {
+		return 0, errBadNumber
+	}
+
+	digits := re.FindAllStringSubmatch(roman, 1)
+
+	arab := 0
+	digit := 1000
+	for i := 1; i < len(digits[0]); i++ {
+		for k, v := range table[4-i] {
+			if digits[0][i] == v {
+				arab += k * digit
+				break
+			}
+		}
+		digit /= 10
+	}
+
+	return arab, nil
+}
+
+func convert(w http.ResponseWriter, r *http.Request) {
 	number := chi.URLParam(r, "number")
 	number = strings.ToUpper(number)
 
-	re := regexp.MustCompile(`^(M{0,3})(D?C{0,3}|C[DM])(L?X{0,3}|X[LC])(V?I{0,3}|I[VX])$`)
+	result := make(map[string]interface{})
 
-	var result interface{}
 	if arab, err := strconv.Atoi(number); err == nil {
 		// Convert arab to roman.
-		if arab <= 0 || arab >= 4000 {
-			http.Error(w, "Bad number", 500)
+		roman, err := arab2roman(arab)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		roman := make([]byte, 0, 15)
-		digit := 1000
-		for i := 3; i >= 0; i-- {
-			d := arab / digit
-			roman = append(roman, []byte(table[i][d])...)
-			arab %= digit
-			digit /= 10
-		}
+		result["res"] = roman
 
-		result = map[string]string{"Res": string(roman)}
-	} else if re.MatchString(number) {
+	} else if arab, err := roman2arab(number); err == nil {
 		// Convert roman to arab.
-		digits := re.FindAllStringSubmatch(number, 1)
+		result["res"] = arab
 
-		arab := 0
-		for i, digit := 1, 1000; i < len(digits[0]); i, digit = i+1, digit/10 {
-			for k, v := range table[4-i] {
-				if digits[0][i] == v {
-					arab += k * digit
-					break
-				}
-			}
-		}
-
-		result = map[string]int{"Res": arab}
 	} else {
-		http.Error(w, "Bad number", 500)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	jsonData, err := json.Marshal(result)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		log.Println(err.Error())
+
+		status := http.StatusInternalServerError
+		http.Error(w, http.StatusText(status), status)
 		return
 	}
 
@@ -87,8 +123,9 @@ func main() {
 	})
 	r.Use(CORS.Handler)
 	r.Use(middleware.SetHeader("Content-Type", "application/json"))
+	r.Use(middleware.Logger)
 
-	r.Get("/convert/{number}", Convert)
+	r.Get("/convert/{number}", convert)
 
 	log.Printf("Server run on http://localhost:8080")
 	if err := http.ListenAndServe(":8080", r); err != nil {

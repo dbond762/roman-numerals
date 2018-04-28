@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/go-chi/chi"
 )
 
 func getResponse(URL string) ([]byte, error) {
@@ -26,7 +27,7 @@ func getResponse(URL string) ([]byte, error) {
 
 func TestConvert(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/convert/{number}", Convert)
+	r.Get("/convert/{number}", convert)
 
 	server := httptest.NewServer(r)
 	defer server.Close()
@@ -70,14 +71,17 @@ func TestConvert(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		var resArab map[string]int
 		if err := json.Unmarshal(got, &resArab); err != nil {
 			t.Fatal(err)
 		}
-		arab, ok := resArab["Res"]
+
+		arab, ok := resArab["res"]
 		if !ok {
 			t.Fatal("Don`t have number in response")
 		}
+
 		if arab != c.arab {
 			t.Errorf("Query: %s,\tgot %d,\twant %d", URL, arab, c.arab)
 		}
@@ -87,14 +91,17 @@ func TestConvert(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		var resRoman map[string]string
 		if err := json.Unmarshal(got, &resRoman); err != nil {
 			t.Fatal(err)
 		}
-		roman, ok := resRoman["Res"]
+
+		roman, ok := resRoman["res"]
 		if !ok {
 			t.Fatal("Don`t have number in response")
 		}
+
 		if roman != c.roman {
 			t.Errorf("Query: %s,\tgot %s,\twant %s", URL, roman, c.roman)
 		}
