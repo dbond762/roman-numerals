@@ -15,14 +15,15 @@ npm install
 npm run dev
 ```
 
-Для того, что бы собрать сервер из исходников: ([бинарники уже скомпилированны](https://github.com/dbond762/roman-numerals/releases))
+Для того, что бы собрать сервер из исходников: ([бинарники уже скомпилированны][release])
   - установить go 1.10
   - склонировать проект в $GOPATH/src
 ```bash
 cd roman-numerals/backend
-go get github.com/go-chi/chi
-go get github.com/go-chi/cors
+go get -v ./...
 go test
 go build
 ./roman
 ```
+
+[release]: https://github.com/dbond762/roman-numerals/releases
