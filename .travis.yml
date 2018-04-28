@@ -5,8 +5,7 @@ matrix:
         - 1.10.x
 
       before_install:
-      - go get -v github.com/go-chi/chi
-      - go get -v github.com/go-chi/cors
+      - go get -v ./...
 
       script:
         - go test -v ./...
